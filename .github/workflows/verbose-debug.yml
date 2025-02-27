@@ -1,0 +1,64 @@
+name: Verbose Semgrep Debug
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  semgrep-debug:
+    name: Semgrep Debug Investigation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Full git history to ensure all files are included
+      
+      - name: List all files in repository
+        run: |
+          echo "==== ALL FILES IN REPOSITORY ===="
+          find . -type f | grep -v "\.git" | sort
+          
+      - name: Check git status
+        run: |
+          echo "==== GIT STATUS ===="
+          git status
+          
+          echo "==== GIT TRACKED FILES ===="
+          git ls-files
+      
+      - name: Install Semgrep directly
+        run: pip install semgrep
+      
+      - name: Manual Semgrep scan with ALL files (not just git tracked)
+        run: |
+          echo "==== RUNNING SEMGREP ON ALL FILES (NO GIT LIMITATION) ===="
+          semgrep --config=p/security-audit --no-git-ignore --verbose .
+          
+      - name: Run Semgrep with detailed debug info
+        run: |
+          echo "==== RUNNING SEMGREP WITH MORE DETAILED OUTPUT ===="
+          SEMGREP_SEND_METRICS=off SEMGREP_ENABLE_VERSION_CHECK=0 semgrep \
+            --config=p/security-audit \
+            --verbose \
+            --json > semgrep-results.json
+          
+          echo "==== SEMGREP RESULTS SUMMARY ===="
+          cat semgrep-results.json | grep -o '"path": "[^"]*"' | sort | uniq
+          
+          echo "==== FULL SEMGREP RESULTS ===="
+          cat semgrep-results.json
+          
+      - name: Run specific patterns directly
+        run: |
+          echo "==== TESTING SPECIFIC VULNERABILITY PATTERNS ===="
+          echo "Looking for os.system with user input:"
+          semgrep -e 'os.system($X)' --lang python .
+          
+          echo "Looking for open with user input:"
+          semgrep -e 'open($X, $Y)' --lang python .
+          
+          echo "Looking for subprocess.call with shell=True:"
+          semgrep -e 'subprocess.call($X, shell=True)' --lang python .
