@@ -23,4 +23,6 @@ jobs:
         with:
           config: 
             p/python
-            .semgrep
+            p/security-audit
+            p/owasp-top-ten
+          verbose: true
