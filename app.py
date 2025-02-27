@@ -9,7 +9,7 @@ app = flask.Flask(__name__)
 def execute_command():
     # VERY obvious command injection
     cmd = request.args.get('cmd')
-    os.system(cmd)  # This should definitely be caught
+    os.system(cmd)  # This should definitely be caught 
     return "Command executed"
 
 @app.route('/read')
