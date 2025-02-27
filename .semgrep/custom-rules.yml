@@ -1,0 +1,12 @@
+rules:
+  - id: python-command-injection
+    pattern: subprocess.$FUNC("... + $VAR + ...", shell=True)
+    message: "Possible command injection vulnerability"
+    languages: [python]
+    severity: ERROR
+
+  - id: python-path-traversal
+    pattern: open("..." + $VAR + "...", ...)
+    message: "Possible path traversal vulnerability"
+    languages: [python]
+    severity: ERROR
