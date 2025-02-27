@@ -1,28 +1,39 @@
-name: Basic Semgrep Scan
+name: Semgrep
 
 on:
+  # Scan changed files in PRs (diff-aware scanning):
+  pull_request: {}
+  # Scan on-demand through GitHub Actions interface:
+  workflow_dispatch: {}
+  # Scan mainline branches if there are changes to .github/workflows/semgrep.yml:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - master
+    paths:
+      - .github/workflows/semgrep.yml
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   semgrep:
-    name: Semgrep Python Scan
+    # User definable name of this GitHub Actions job.
+    name: semgrep/ci
+    # If you are self-hosting, change the following `runs-on` value:
     runs-on: ubuntu-latest
+
+    container:
+      image: semgrep/semgrep
+
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.actor != 'dependabot[bot]')
+
     steps:
-      - uses: actions/checkout@v3
-      
-      # Simple approach - just run the scan and show results in logs
-      - name: Semgrep Scan
-        uses: semgrep/semgrep-action@v1
-        with:
-          config: 
-            p/python
-            p/security-audit
-            p/owasp-top-ten
-          verbose: true
+      - uses: actions/checkout@v4
+      - run: semgrep ci
+        # env:
+        #   # Connect to Semgrep AppSec Platform through your SEMGREP_APP_TOKEN.
+        #   # Generate a token from Semgrep AppSec Platform > Settings
+        #   # and add it to your GitHub secrets.
+        #   SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
