@@ -1,8 +1,14 @@
+name: Basic Semgrep Scan
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
   semgrep:
@@ -11,21 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Run Semgrep
+      # Simple approach - just run the scan and show results in logs
+      - name: Semgrep Scan
         uses: semgrep/semgrep-action@v1
         with:
-          config: >-
-            p/python
-            # .semgrep
-          generateSarif: "1"
-          output: semgrep.sarif
-        # env:
-          # Optional: for Semgrep Cloud Platform dashboard
-          # SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-          
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: semgrep.sarif
-          wait-for-processing: true
-        if: always()
+          config: p/python
